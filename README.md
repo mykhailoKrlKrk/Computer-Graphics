@@ -1,1 +1,1 @@
-# University projects aimed at studying computer graphics 🌠
+# University projects aimed at studying computer graphics🌠
