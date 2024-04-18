@@ -157,8 +157,8 @@ public class FractalViewer extends Application {
 
         for (int xPixel = 0; xPixel < width; xPixel++) {
             for (int yPixel = 0; yPixel < height; yPixel++) {
-                double x0 = map(xPixel, width, minX, maxX);
-                double y0 = map(yPixel, height, minY, maxY);
+                double x0 = map(xPixel, 0, width, minX, maxX);
+                double y0 = map(yPixel, 0, height, minY, maxY);
                 double x = 0;
                 double y = 0;
                 int iteration = 0;
@@ -216,9 +216,9 @@ public class FractalViewer extends Application {
     }
 
     //Збільшення масштабу зображення
-    private void zoom(double mouseX, double mouseY) {
-        double newWidth = (maxX - minX) / (double) 2;
-        double newHeight = (maxY - minY) / (double) 2;
+    private void zoom(double mouseX, double mouseY, double zoomFactor) {
+        double newWidth = (maxX - minX) / zoomFactor;
+        double newHeight = (maxY - minY) / zoomFactor;
         double newX = minX + (mouseX / canvas.getWidth()) * (maxX - minX) - newWidth / 2;
         double newY = minY + (mouseY / canvas.getHeight()) * (maxY - minY) - newHeight / 2;
         minX = newX;
@@ -233,8 +233,8 @@ public class FractalViewer extends Application {
     }
 
     //Перетворення координат пікселів на екрані (або вікна) в відповідні координати в області фрактала
-    private double map(double value, double stop1, double start2, double stop2) {
-        return start2 + (stop2 - start2) * ((value - (double) 0) / (stop1 - (double) 0));
+    private double map(double value, double start1, double stop1, double start2, double stop2) {
+        return start2 + (stop2 - start2) * ((value - start1) / (stop1 - start1));
     }
 
     //Перехід до стандартного зображення
@@ -287,7 +287,7 @@ public class FractalViewer extends Application {
             if (event.getClickCount() == 2) {
                 double mouseX = event.getX();
                 double mouseY = event.getY();
-                zoom(mouseX, mouseY);
+                zoom(mouseX, mouseY, 2);
             }
         });
 
