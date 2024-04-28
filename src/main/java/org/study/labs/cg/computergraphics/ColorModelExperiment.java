@@ -1,6 +1,6 @@
 package org.study.labs.cg.computergraphics;
 
-import java.awt.*;
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileWriter;
@@ -10,6 +10,7 @@ import javafx.application.Application;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -37,11 +38,17 @@ public class ColorModelExperiment extends Application {
 
         Button openButton = new Button("Open Image");
         openButton.setOnAction(this::openImage);
+        openButton.setStyle("-fx-text-fill: white; -fx-background-color: #6c8bbd;");
+
         Button convertButton = new Button("Convert");
         convertButton.setOnAction(this::convertImage);
+        convertButton.setStyle("-fx-text-fill: white; -fx-background-color: #6c8bbd;");
 
         HBox buttonsBox = new HBox(10, openButton, convertButton);
-        buttonsBox.setPadding(new Insets(10));
+        buttonsBox.setAlignment(Pos.TOP_CENTER);
+        buttonsBox.setPadding(new Insets(20));
+        buttonsBox.setStyle("-fx-text-fill: white; -fx-background-color: linear-gradient(to top, #c0c9d6, #6182b6);");
+
 
         root.setTop(buttonsBox);
         root.setCenter(imageView);
@@ -166,6 +173,10 @@ public class ColorModelExperiment extends Application {
                 originalImage = ImageIO.read(file);
                 Image image = SwingFXUtils.toFXImage(originalImage, null);
                 imageView.setImage(image);
+
+                // Змінюємо розмір зображення до розмірів вікна
+                imageView.setFitWidth(imageView.getScene().getWidth() - 300);
+                imageView.setFitHeight(imageView.getScene().getHeight() - 300);
             } catch (IOException e) {
                 throw new RuntimeException("Something goes wrong..");
             }
@@ -200,7 +211,7 @@ public class ColorModelExperiment extends Application {
             saveImageToFile(cmykImage, saveLocation.getAbsolutePath() + "_cmyk.png");
             saveImageToFile(hslImage, saveLocation.getAbsolutePath() + "_hsl.png");
 
-            saveColorValuesToFile(originalImage, cmykImage, hslImage, hslFromCMYK,  "_color_values.txt");
+            saveColorValuesToFile(originalImage, cmykImage, hslImage, hslFromCMYK);
         }
     }
 
@@ -276,6 +287,12 @@ public class ColorModelExperiment extends Application {
         return convertRGBtoHSL(rgbFromCmyk);
     }
 
+    private BufferedImage convertHSLtoCMYK(BufferedImage hslImage) {
+        BufferedImage rgbFromHSL = convertRGBtoCMYK(hslImage);
+        return convertRGBtoHSL(rgbFromHSL);
+    }
+
+
     public static Color CMYKToRGB(double c, double m, double y, double k) {
         int r = (int) (255.0 * (1.0 - c) * (1.0 - k));
         int g = (int) (255.0 * (1.0 - m) * (1.0 - k));
@@ -288,7 +305,6 @@ public class ColorModelExperiment extends Application {
 
         return new Color(r, g, b);
     }
-
 
     public static float[] rgbToHsl(int r, int g, int b) {
         // Нормалізація значень RGB до діапазону [0, 1]
@@ -351,36 +367,92 @@ public class ColorModelExperiment extends Application {
         return p;
     }
 
-    private void saveColorValuesToFile(BufferedImage originalImage, BufferedImage cmykImage, BufferedImage hslImage, BufferedImage hslFromCMYK, String fileName) {
+    private void saveColorValuesToFile(BufferedImage originalImage, BufferedImage cmykImage,
+                                       BufferedImage hslImage, BufferedImage hslFromCMYK) {
         try {
             // Створення файлу для запису значень кольорів
-            File file = new File(fileName);
+            File file = new File("_color_values.txt");
             FileWriter writer = new FileWriter(file);
 
             // Запис значень кольорів для кожного пікселя у файл
-            writer.write("Original Image:\n");
-            writeColorValues(writer, originalImage);
-            writer.write("\nCMYK Image:\n");
-            writeColorValues(writer, cmykImage);
-            writer.write("\nHSL Image:\n");
-            writeColorValues(writer, hslImage);
-            writer.write("\nHSL Image from CMYK:\n");
-            writeColorValues(writer, hslFromCMYK);
+            writeColorValues(writer, originalImage, cmykImage, hslImage, hslFromCMYK);
 
             writer.close();
-            System.out.println("Color values saved successfully: " + fileName);
+            System.out.println("Color values saved successfully: " + "_color_values.txt");
         } catch (IOException e) {
             throw new RuntimeException("Failed to save color values.");
         }
     }
 
-    private void writeColorValues(FileWriter writer, BufferedImage image) throws IOException {
+    private void writeColorValues(FileWriter writer, BufferedImage originalImage,
+                                  BufferedImage cmykImage,BufferedImage hslImage, BufferedImage hslFromCMYK) throws IOException {
+
+        writer.write("Original Image:\n");
         for (int y = 0; y < 20; y++) {
             for (int x = 0; x < 20; x++) {
                 // Отримання кольору пікселя
-                Color color = new Color(image.getRGB(x, y));
+                Color color = new Color(originalImage.getRGB(x, y));
                 // Запис значень кольору у файл
-                writer.write(String.format("(%d, %d, %d) ", color.getRed(), color.getGreen(), color.getBlue()));
+                writer.write(String.format("(%d, %d, %d) ",
+                        color.getRed(),
+                        color.getGreen(),
+                        color.getBlue()));
+            }
+            writer.write("\n");
+        }
+
+        writer.write("\nCMYK Image:\n");
+        for (int y = 0; y < 20; y++) {
+            for (int x = 0; x < 20; x++) {
+                // Отримання кольору пікселя
+                Color rgbColor = new Color(cmykImage.getRGB(x, y));
+
+                float red = rgbColor.getRed() / 255f;
+                float green = rgbColor.getGreen() / 255f;
+                float blue = rgbColor.getBlue() / 255f;
+
+                float black = 1 - Math.max(Math.max(red, green), blue);
+
+                float cyan = (1 - red - black) / (1 - black);
+                float magenta = (1 - green - black) / (1 - black);
+                float yellow = (1 - blue - black) / (1 - black);
+
+                // Запис значень кольору у файл
+                writer.write(String.format("(%f, %f, %f, %f) ", cyan, magenta,
+                        yellow, black));
+            }
+            writer.write("\n");
+        }
+
+        writer.write("\nHSL Image:\n");
+        for (int y = 0; y < 20; y++) {
+            for (int x = 0; x < 20; x++) {
+                // Отримання кольору пікселя
+                Color color = new Color(hslImage.getRGB(x, y));
+
+                float[] hslFromRgb =
+                        rgbToHsl(color.getRed(), color.getGreen(), color.getBlue());
+
+                // Запис значень кольору у файл
+                writer.write(String.format("(%f, %f, %f) ",
+                        hslFromRgb[0],
+                        hslFromRgb[1],
+                        hslFromRgb[2]));
+            }
+            writer.write("\n");
+        }
+
+        writer.write("\nHSL From CMYK Image:\n");
+        for (int y = 0; y < 20; y++) {
+            for (int x = 0; x < 20; x++) {
+                // Отримання кольору пікселя
+                Color color = new Color(hslFromCMYK.getRGB(x, y));
+
+                float[] hslFromRgb =
+                        rgbToHsl(color.getRed(), color.getGreen(), color.getBlue());
+
+                // Запис значень кольору у файл
+                writer.write(String.format("(%f, %f, %f) ", hslFromRgb[0], hslFromRgb[1], hslFromRgb[2]));
             }
             writer.write("\n");
         }

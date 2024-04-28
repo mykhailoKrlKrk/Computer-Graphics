@@ -30,6 +30,8 @@ public class TriangleDrawer extends Application {
     private TextField xField1, yField1, xField2, yField2;
     private Button drawButton;
     private Canvas canvas;
+    private int step = 50;
+    GraphicsContext gc;
 
     @Override
     public void start(Stage primaryStage) {
@@ -37,10 +39,11 @@ public class TriangleDrawer extends Application {
         primaryStage.setResizable(false);
 
         canvas = new Canvas(WIDTH, HEIGHT);
-        GraphicsContext gc = canvas.getGraphicsContext2D();
+        gc = canvas.getGraphicsContext2D();
 
         drawCoordinateSystem(gc);
         root.setCenter(canvas);
+        drawGrid(gc);
 
         HBox inputBox = createInputBox();
         root.setBottom(inputBox);
@@ -54,6 +57,8 @@ public class TriangleDrawer extends Application {
     }
 
     private void drawCoordinateSystem(GraphicsContext gc) {
+        gc.clearRect(0, 0, WIDTH, HEIGHT);
+
         gc.setStroke(Color.BLACK);
 
         gc.strokeLine(WIDTH / 2, 0, WIDTH / 2, HEIGHT);
@@ -72,7 +77,7 @@ public class TriangleDrawer extends Application {
         double zeroPointSize = 5;
         gc.fillOval(WIDTH / 2 - zeroPointSize / 2, HEIGHT / 2 - zeroPointSize / 2, zeroPointSize, zeroPointSize);
 
-        for (int i = 50; i <= 350; i += 50) {
+        for (int i = step; i <= 350; i += step) {
             gc.strokeLine(WIDTH / 2 + i, HEIGHT / 2 - 3, WIDTH / 2 + i, HEIGHT / 2 + 3);
             gc.strokeLine(WIDTH / 2 - i, HEIGHT / 2 - 3, WIDTH / 2 - i, HEIGHT / 2 + 3);
 
@@ -82,7 +87,7 @@ public class TriangleDrawer extends Application {
             gc.fillText(String.valueOf(-i), WIDTH / 2 - i - textWidth / 2, HEIGHT / 2 + textHeight + 3);
         }
 
-        for (int i = 50; i <= 250; i += 50) {
+        for (int i = step; i <= 250; i += step) {
             gc.strokeLine(WIDTH / 2 - 3, HEIGHT / 2 - i, WIDTH / 2 + 3, HEIGHT / 2 - i);
             gc.strokeLine(WIDTH / 2 - 3, HEIGHT / 2 + i, WIDTH / 2 + 3, HEIGHT / 2 + i);
 
@@ -236,9 +241,15 @@ public class TriangleDrawer extends Application {
 
         MenuItem drawTriangleItem = new MenuItem("Draw triangle");
         MenuItem cleanCoordinateSystemItem = new MenuItem("Clear");
+        MenuItem expandItem = new MenuItem("Expand");
+        MenuItem reduceItem = new MenuItem("Reduce");
+        functionMenu.getItems().add(expandItem);
+        functionMenu.getItems().add(reduceItem);
         functionMenu.getItems().add(drawTriangleItem);
         functionMenu.getItems().add(cleanCoordinateSystemItem);
 
+        expandItem.setOnAction(actionEvent -> expandCoordinateSystem(gc));
+        expandItem.setOnAction(actionEvent -> reduceCoordinateSystem(gc));
         drawTriangleItem.setOnAction(event -> showDrawTriangleDialog());
         cleanCoordinateSystemItem.setOnAction(event -> cleanCoordinateSystem());
 
@@ -246,11 +257,32 @@ public class TriangleDrawer extends Application {
         return menuBar;
     }
 
+    private void drawGrid(GraphicsContext gc) {
+        gc.setStroke(Color.LIGHTGRAY);
+        for (double x = 20; x < gc.getCanvas().getWidth(); x += 20) {
+            gc.strokeLine(x, 0, x, gc.getCanvas().getHeight());
+        }
+        for (double y = 20; y < gc.getCanvas().getHeight(); y += 20) {
+            gc.strokeLine(0, y, gc.getCanvas().getWidth(), y);
+        }
+    }
+
+    private void expandCoordinateSystem(GraphicsContext gc) {
+        step += 10;
+        drawCoordinateSystem(gc);
+    }
+
+    private void reduceCoordinateSystem(GraphicsContext gc) {
+        step -= 10;
+        drawCoordinateSystem(gc);
+    }
+
     private void cleanCoordinateSystem() {
         GraphicsContext gc = canvas.getGraphicsContext2D();
         gc.clearRect(0, 0, WIDTH, HEIGHT);
         drawCoordinateSystem(gc);
     }
+
 
     public static void main(String[] args) {
         launch(args);

@@ -44,7 +44,6 @@ public class FractalViewer extends Application {
     private Color defaultMandelbrotColor = Color.RED;
     private Color defaultBrownianColor = Color.BLACK;
 
-
     //Основна функція програми
     @Override
     public void start(Stage primaryStage) {
