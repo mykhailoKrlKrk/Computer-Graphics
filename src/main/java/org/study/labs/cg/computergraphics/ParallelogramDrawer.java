@@ -32,10 +32,11 @@ public class ParallelogramDrawer extends Application {
     private Color selectedColor;
 
     private TextField xField1, yField1, xField2, yField2, xField3, yField3, xField4, yField4;
-    private double x1Field1 = 100, y1Field1 = 100;
-    private double x1Field2 = 200, y1Field2 = 100;
-    private double x1Field3 = 250, y1Field3 = 200;
-    private double x1Field4 = 150, y1Field4 = 200;
+    private double x1Field1 = 50, y1Field1 = 50;
+    private double x1Field2 = 150, y1Field2 = 150;
+    private double x1Field3 = 330, y1Field3 = 150;
+    private double x1Field4 = 230, y1Field4 = 50;
+
     private boolean isImageSaved = false;
     private Button drawButton;
     private Canvas canvas;
@@ -175,7 +176,7 @@ public class ParallelogramDrawer extends Application {
         y4Field.setPromptText("Y4");
         y4Field.setText(String.valueOf(y1Field4)); // Значення за замовчуванням
 
-        ColorPicker fillColorPicker = new ColorPicker(Color.GREEN);
+        ColorPicker fillColorPicker = new ColorPicker(Color.hsb(228, 0.76, 0.75, 0.80));
 
         dialog.getDialogPane().setContent(new VBox(10,
                 new HBox(5, new Label("X1(Max - 350):"), x1Field, new Label("Y1(Max - 250):"), y1Field),
@@ -184,7 +185,6 @@ public class ParallelogramDrawer extends Application {
                 new HBox(5, new Label("X4(Max - 350):"), x4Field, new Label("Y4(Max - 250):"), y4Field),
                 new Label("Fill color:"), fillColorPicker
         ));
-
 
 
         dialog.setResultConverter(dialogButton -> {
@@ -209,7 +209,7 @@ public class ParallelogramDrawer extends Application {
                     if ((x1 > 450 || x1 < -450) || (x2 > 450 || x2 < -450)
                             || (x3 > 450 || x3 < -450) || x4 > 450 || x4 < -450) {
                         showAlert("x values must be less than or equal to +/- 450");
-                    } else if  ((y1 > 450 || y1 < -200) || (y2 > 450 || y2 < -200)
+                    } else if ((y1 > 450 || y1 < -200) || (y2 > 450 || y2 < -200)
                             || (y3 > 450 || y3 < -200) || y4 > 450 || y4 < -200) {
                         showAlert("y values must be less than or equal to 450, and negative to -200");
                     } else {
@@ -253,12 +253,13 @@ public class ParallelogramDrawer extends Application {
         if (!isImageSaved) {
             saveInitialParallelogramToFile("initial_parallelogram.png");
         }
-     }
+    }
 
     //Переведення значення пікселів на площині в значення координат - X
     private double convertX(double x) {
         return WIDTH / 2 + x;
     }
+
     //Переведення значення пікселів на площині в значення координат - Y
     private double convertY(double y) {
         return HEIGHT / 2 - y;
@@ -278,9 +279,9 @@ public class ParallelogramDrawer extends Application {
         functionMenu.getItems().add(expandItem);
         functionMenu.getItems().add(reduceItem);
         functionMenu.getItems().add(drawParallelogramItem);
-        functionMenu.getItems().add(cleanCoordinateSystemItem);
         functionMenu.getItems().add(moveParallelogramItem);
         functionMenu.getItems().add(stopParallelogramItem);
+        functionMenu.getItems().add(cleanCoordinateSystemItem);
 
         stopParallelogramItem.setOnAction(event -> stopMoving());
         expandItem.setOnAction(actionEvent -> expandCoordinateSystem(gc));
@@ -347,7 +348,6 @@ public class ParallelogramDrawer extends Application {
 
     //Допоміжні змінні
     private double totalRotation = 0.0;
-    private StringBuilder matrixResult = new StringBuilder();
     private boolean isMatrixSaved = false;
 
     //Функція що використовує афінні перетворення для руху паралелограма
@@ -504,6 +504,8 @@ public class ParallelogramDrawer extends Application {
         File file = new File(fileName);
         try {
             ImageIO.write(SwingFXUtils.fromFXImage(image, null), "png", file);
+            isImageSaved = true;
+
         } catch (IOException e) {
             throw new RuntimeException("Can't save parallelogram to file", e);
         }
